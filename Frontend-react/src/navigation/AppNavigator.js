@@ -1,0 +1,120 @@
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { Text } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+import LanguageScreen from "../screens/LanguageScreen";
+import LoginScreen from "../screens/LoginScreen";
+import SignupScreen from "../screens/SignupScreen";
+import HomeScreen from "../screens/HomeScreen";
+import CourseListScreen from "../screens/CourseListScreen";
+import WishlistScreen from "../screens/WishlistScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import CourseDetailScreen from "../screens/CourseDetailScreen";
+import QuizScreen from "../screens/QuizScreen";
+import CertificateScreen from "../screens/CertificateScreen";
+import { COLORS } from "../utils/constants";
+
+import { ActivityIndicator, View } from "react-native";
+import { AuthContext } from "../context/AuthContext";
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Bottom Tab Navigator
+function MainTabNavigator() {
+  // ... (keep exact same MainTabNavigator code)
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: {
+          backgroundColor: COLORS.white,
+          borderTopWidth: 1,
+          borderTopColor: COLORS.border,
+          height: 60,
+          paddingBottom: 10,
+          paddingTop: 5,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Dashboard"
+        component={HomeScreen}
+        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text> }}
+      />
+      <Tab.Screen
+        name="Courses"
+        component={CourseListScreen}
+        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📖</Text> }}
+      />
+      <Tab.Screen
+        name="Wishlist"
+        component={WishlistScreen}
+        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>❤️</Text> }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text> }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+const AppNavigator = () => {
+  const { isBootstrapping, userToken } = React.useContext(AuthContext);
+
+  if (isBootstrapping) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#FDFAF2" },
+        }}
+      >
+        {userToken === null ? (
+          // No token found, user isn't signed in
+          <>
+            <Stack.Screen name="Language" component={LanguageScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+          </>
+        ) : (
+          // User is signed in
+          <>
+            <Stack.Screen name="Home" component={MainTabNavigator} />
+            <Stack.Screen
+              name="CourseDetail"
+              component={CourseDetailScreen}
+              options={{ title: "Course Details" }}
+            />
+            <Stack.Screen
+              name="Quiz"
+              component={QuizScreen}
+              options={{ title: "Final Quiz" }}
+            />
+            <Stack.Screen
+              name="Certificate"
+              component={CertificateScreen}
+              options={{ headerShown: false }}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;

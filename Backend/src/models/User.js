@@ -1,0 +1,49 @@
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+
+// This is DEMO v0 implementation
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["learner", "trainer", "admin"],
+      default: "learner",
+    },
+    phoneNumber: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow multiple nulls if phoneNumber is not provided (though we will require it)
+    },
+  },
+  { timestamps: true },
+);
+
+// Hash password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Match user entered password to hashed password in database
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+const User = mongoose.model("User", userSchema);
+module.exports = User;
