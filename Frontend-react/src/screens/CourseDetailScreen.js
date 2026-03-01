@@ -35,7 +35,7 @@ const CourseDetailScreen = ({ route, navigation }) => {
       const [courseRes, progressRes] = await Promise.all([
         apiService.get(`/courses/${id}`),
         apiService.get(`/progress/${id}`).catch(() => ({
-          data: { completedModules: [], progressPercentage: 0 },
+          data: null,
         })),
       ]);
       setCourse(courseRes.data);
@@ -45,6 +45,16 @@ const CourseDetailScreen = ({ route, navigation }) => {
       Alert.alert("Error", "Failed to load course details.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEnroll = async () => {
+    try {
+      await apiService.post("/progress/enroll", { courseId: id });
+      fetchCourseDetails();
+    } catch (error) {
+      console.error("Enrollment error:", error);
+      Alert.alert("Error", "Failed to enroll in the course.");
     }
   };
 
@@ -101,21 +111,44 @@ const CourseDetailScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Video Header */}
       <View style={styles.videoContainer}>
-        <WebView
-          source={{
-            uri:
-              course.videoUrl ||
-              (course.modules?.[0]?.videoUrl &&
-                (course.modules[0].videoUrl.includes("v=")
-                  ? `https://www.youtube.com/embed/${course.modules[0].videoUrl.split("v=")[1]}`
-                  : course.modules[0].videoUrl)) ||
-              "https://www.youtube.com/embed/dQw4w9WgXcQ",
-          }}
-          style={styles.video}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          allowsFullscreenVideo={true}
-        />
+        {progress ? (
+          <WebView
+            source={{
+              uri: (() => {
+                let url =
+                  course.youtubeVideoUrl ||
+                  "https://www.youtube.com/embed/dQw4w9WgXcQ";
+
+                if (url.includes("watch?v=")) {
+                  url = `https://www.youtube.com/embed/${url.split("v=")[1]}`;
+                }
+
+                // Add origin for YouTube embed identity
+                const origin = "https://www.youtube.com";
+                url += url.includes("?")
+                  ? `&origin=${origin}`
+                  : `?origin=${origin}`;
+
+                if (route.params?.autoplay) {
+                  url += "&autoplay=1";
+                }
+                return url;
+              })(),
+              headers: {
+                Referer: "https://www.youtube.com",
+              },
+            }}
+            style={styles.video}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            allowsFullscreenVideo={true}
+          />
+        ) : (
+          <View style={styles.videoPlaceholder}>
+            <Feather name="lock" size={40} color={COLORS.white} />
+            <Text style={styles.lockText}>Enroll to watch this course</Text>
+          </View>
+        )}
       </View>
 
       <ScrollView
@@ -318,9 +351,21 @@ const CourseDetailScreen = ({ route, navigation }) => {
 
       {/* Sticky Bottom Action */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.continueBtn} onPress={() => {}}>
-          <Text style={styles.continueBtnText}>Continue Learning</Text>
-        </TouchableOpacity>
+        {progress ? (
+          <TouchableOpacity
+            style={styles.continueBtn}
+            onPress={() => {
+              // Passing autoplay=true to force re-render with autoplay if not already playing
+              navigation.setParams({ autoplay: true });
+            }}
+          >
+            <Text style={styles.continueBtnText}>Continue Learning</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.enrollBtn} onPress={handleEnroll}>
+            <Text style={styles.continueBtnText}>Enroll Now</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -585,6 +630,23 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontWeight: "bold",
+  },
+  videoPlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1e293b",
+  },
+  lockText: {
+    color: COLORS.white,
+    marginTop: 10,
+    fontSize: 16,
+  },
+  enrollBtn: {
+    backgroundColor: COLORS.secondary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
   },
 });
 

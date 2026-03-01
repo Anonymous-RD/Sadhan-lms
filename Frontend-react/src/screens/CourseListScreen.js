@@ -51,7 +51,10 @@ const CourseListScreen = ({ navigation }) => {
       const progressMap = {};
       progressResults.forEach((res, index) => {
         if (res.data) {
-          progressMap[fetchedCourses[index]._id] = res.data.progressPercentage;
+          progressMap[fetchedCourses[index]._id] = {
+            percentage: res.data.progressPercentage,
+            enrolled: true,
+          };
         }
       });
       setProgressData(progressMap);
@@ -59,6 +62,16 @@ const CourseListScreen = ({ navigation }) => {
       console.error("Error fetching courses:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEnroll = async (courseId) => {
+    try {
+      await apiService.post("/progress/enroll", { courseId });
+      fetchCourses(); // Refresh to show Continue Learning
+    } catch (error) {
+      console.error("Enrollment error:", error);
+      Alert.alert("Error", "Failed to enroll in the course.");
     }
   };
 
@@ -220,17 +233,44 @@ const CourseListScreen = ({ navigation }) => {
                   <View
                     style={[
                       styles.progressBarFill,
-                      { width: `${progressData[course._id] || 0}%` },
+                      {
+                        width: `${progressData[course._id]?.percentage || 0}%`,
+                      },
                     ]}
                   ></View>
                 </View>
                 <View style={styles.progressTextContainer}>
                   <Text style={styles.progressLabel}>Progress</Text>
                   <Text style={styles.progressValue}>
-                    {Math.round(progressData[course._id] || 0)}%
+                    {Math.round(progressData[course._id]?.percentage || 0)}%
                   </Text>
                 </View>
               </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  progressData[course._id]?.enrolled
+                    ? styles.continueBtnCard
+                    : styles.enrollBtnCard,
+                ]}
+                onPress={() => {
+                  if (progressData[course._id]?.enrolled) {
+                    navigation.navigate("CourseDetail", {
+                      id: course._id || course.id,
+                      autoplay: true,
+                    });
+                  } else {
+                    handleEnroll(course._id || course.id);
+                  }
+                }}
+              >
+                <Text style={styles.actionBtnText}>
+                  {progressData[course._id]?.enrolled
+                    ? "Continue Learning"
+                    : "Enroll Now"}
+                </Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           ))
         )}
@@ -423,6 +463,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: COLORS.textSecondary,
+  },
+  actionBtn: {
+    marginTop: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  enrollBtnCard: {
+    backgroundColor: COLORS.secondary,
+  },
+  continueBtnCard: {
+    backgroundColor: COLORS.primary,
+  },
+  actionBtnText: {
+    color: COLORS.white,
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });
 

@@ -40,13 +40,11 @@ const completeModule = async (req, res) => {
       courseId,
     });
 
-    // Create progress record if it doesn't exist
+    // Require enrollment first
     if (!progress) {
-      progress = new Progress({
-        userId: req.user._id,
-        courseId,
-        completedModules: [],
-      });
+      return res
+        .status(403)
+        .json({ message: "Please enroll in the course first" });
     }
 
     // Add module if not already completed
@@ -68,7 +66,45 @@ const completeModule = async (req, res) => {
   }
 };
 
+// @desc    Enroll in a course
+// @route   POST /progress/enroll
+// @access  Private
+const enrollCourse = async (req, res) => {
+  const { courseId } = req.body;
+
+  try {
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    let progress = await Progress.findOne({
+      userId: req.user._id,
+      courseId,
+    });
+
+    if (progress) {
+      return res
+        .status(400)
+        .json({ message: "User already enrolled in this course" });
+    }
+
+    progress = new Progress({
+      userId: req.user._id,
+      courseId,
+      completedModules: [],
+      progressPercentage: 0,
+    });
+
+    await progress.save();
+    res.status(201).json(progress);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   getProgress,
   completeModule,
+  enrollCourse,
 };
