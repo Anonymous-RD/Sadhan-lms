@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, Modal, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 const TYPE_CONFIG = {
@@ -69,7 +69,7 @@ const AnimatedToast = ({
     const timer = setTimeout(hide, duration);
 
     return () => clearTimeout(timer);
-  }, [duration, onHide, opacity, translateY, visible]);
+  }, [duration, message, onHide, opacity, translateY, type, visible]);
 
   if (!visible) {
     return null;
@@ -78,36 +78,49 @@ const AnimatedToast = ({
   const config = TYPE_CONFIG[type] || TYPE_CONFIG.info;
 
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        styles.container,
-        {
-          transform: [{ translateY }],
-          opacity,
-          backgroundColor: config.backgroundColor,
-          bottom: bottomOffset,
-        },
-      ]}
+    <Modal
+      transparent
+      visible={visible}
+      animationType="none"
+      statusBarTranslucent
     >
-      <View style={styles.content}>
-        <Feather name={config.icon} size={16} color="#FFFFFF" />
-        <Text style={styles.message} numberOfLines={2}>
-          {message}
-        </Text>
+      <View pointerEvents="box-none" style={styles.overlay}>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.container,
+            {
+              transform: [{ translateY }],
+              opacity,
+              backgroundColor: config.backgroundColor,
+              bottom: bottomOffset,
+            },
+          ]}
+        >
+          <View style={styles.content}>
+            <Feather name={config.icon} size={16} color="#FFFFFF" />
+            <Text style={styles.message} numberOfLines={2}>
+              {message}
+            </Text>
+          </View>
+        </Animated.View>
       </View>
-    </Animated.View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+  },
   container: {
     position: "absolute",
     left: 16,
     right: 16,
     borderRadius: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 5,
     paddingVertical: 10,
+    paddingLeft: 10,
     zIndex: 1000,
     elevation: 4,
   },
@@ -117,6 +130,8 @@ const styles = StyleSheet.create({
   },
   message: {
     color: "#FFFFFF",
+    padding: 8,
+    // paddingLeft: s9,
     marginLeft: 8,
     flex: 1,
     fontSize: 13,
