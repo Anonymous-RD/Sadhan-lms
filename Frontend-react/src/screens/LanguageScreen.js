@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
+import { AuthContext } from "../context/AuthContext";
 
 const LANGUAGES = [
   {
@@ -99,6 +100,7 @@ const LANGUAGES = [
 
 const LanguageScreen = ({ navigation }) => {
   const [selectedLang, setSelectedLang] = useState("en");
+  const { completeLanguageSelection } = useContext(AuthContext);
 
   const renderItem = ({ item }) => {
     const isSelected = selectedLang === item.id;
@@ -155,7 +157,7 @@ const LanguageScreen = ({ navigation }) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => completeLanguageSelection()}
         >
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>

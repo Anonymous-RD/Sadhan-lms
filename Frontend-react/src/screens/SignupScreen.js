@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomInput from "../components/CustomInput";
@@ -115,9 +116,12 @@ const SignupScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.logoText}>Sa-Dhan</Text>
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>
             Sign up to start your journey with us
@@ -213,10 +217,9 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     alignItems: "center",
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
+  logoImage: {
+    height: 70,
+    width: 280,
     marginBottom: 10,
   },
   title: {

@@ -9,6 +9,16 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [userToken, setUserToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
+
+  const completeLanguageSelection = async () => {
+    try {
+      await AsyncStorage.setItem("language_selected", "true");
+      setHasSelectedLanguage(true);
+    } catch (e) {
+      console.log("Language setting error", e);
+    }
+  };
 
   const login = async (identifier, credential, loginMethod = "otp") => {
     setIsLoading(true);
@@ -139,6 +149,11 @@ export const AuthProvider = ({ children }) => {
       setIsBootstrapping(true);
       let userInfoStr = await AsyncStorage.getItem("userInfo");
       let userTokenStr = await AsyncStorage.getItem("userToken");
+      let langSelectedStr = await AsyncStorage.getItem("language_selected");
+
+      if (langSelectedStr) {
+        setHasSelectedLanguage(true);
+      }
 
       if (userInfoStr && userTokenStr) {
         setUserInfo(JSON.parse(userInfoStr));
@@ -161,10 +176,12 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         register,
+        completeLanguageSelection,
         isLoading,
         isBootstrapping,
         userToken,
         userInfo,
+        hasSelectedLanguage,
       }}
     >
       {children}

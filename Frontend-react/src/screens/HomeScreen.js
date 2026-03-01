@@ -13,6 +13,7 @@ import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
 import { Alert } from "react-native";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const HomeScreen = ({ navigation }) => {
   const { userInfo, logout } = useContext(AuthContext);
@@ -87,14 +88,16 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.avatarText}>{userInitials}</Text>
           </View>
           <View>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <Text style={styles.welcomeText}>Welcome,</Text>
             <Text style={styles.nameText}>{userName}</Text>
-            <Text style={styles.userEmail}>{userInfo?.email}</Text>
           </View>
         </View>
         <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.notificationBtn}>
+            <Feather name="bell" size={24} color="#334155" />
+          </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtn}
+            style={styles.logoutBtn}
             onPress={() => {
               Alert.alert("Logout", "Are you sure you want to logout?", [
                 { text: "Cancel", style: "cancel" },
@@ -102,7 +105,7 @@ const HomeScreen = ({ navigation }) => {
               ]);
             }}
           >
-            <Text style={styles.actionIcon}>Logout</Text>
+            <Feather name="log-out" size={24} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
@@ -122,21 +125,37 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.statLabel}>Courses Enrolled</Text>
             <View style={styles.statBottom}>
               <Text style={styles.statValue}>{stats.enrolled}</Text>
-              <View style={styles.iconPlaceholder} />
-            </View>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: "#FFF3E0" }]}>
-            <Text style={styles.statLabel}>Hours Learned</Text>
-            <View style={styles.statBottom}>
-              <Text style={styles.statValue}>{Math.round(stats.hours)}</Text>
-              <View style={styles.iconPlaceholder} />
+              <View
+                style={[styles.iconPlaceholder, { backgroundColor: "#E3F2FD" }]}
+              >
+                <Feather name="book-open" size={16} color="#0284C7" />
+              </View>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: "#E8F5E9" }]}>
+            <Text style={styles.statLabel}>Hours Learned</Text>
+            <View style={styles.statBottom}>
+              <Text style={styles.statValue}>{Math.round(stats.hours)} Hr</Text>
+              <View
+                style={[styles.iconPlaceholder, { backgroundColor: "#C8E6C9" }]}
+              >
+                <Feather name="clock" size={16} color="#16A34A" />
+              </View>
+            </View>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: "#F3E8FF" }]}>
             <Text style={styles.statLabel}>Certification</Text>
             <View style={styles.statBottom}>
               <Text style={styles.statValue}>{stats.certificates}</Text>
-              <View style={styles.iconPlaceholder} />
+              <View
+                style={[styles.iconPlaceholder, { backgroundColor: "#E9D5FF" }]}
+              >
+                <MaterialCommunityIcons
+                  name="trophy-outline"
+                  size={18}
+                  color="#9333EA"
+                />
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -145,7 +164,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.sectionHeaderContainer}>
           <Text style={styles.sectionTitle}>Continue Learning</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Courses")}>
-            <Text style={styles.seeAllText}>See all</Text>
+            <Text style={styles.seeAllText}>View All →</Text>
           </TouchableOpacity>
         </View>
 
@@ -163,11 +182,35 @@ const HomeScreen = ({ navigation }) => {
             }
           >
             <View style={styles.courseImagePlaceholder}>
-              <View style={styles.cardIconPlaceholder}></View>
+              <View style={styles.coursePill}>
+                <Text style={styles.coursePillText}>Development</Text>
+              </View>
             </View>
             <View style={styles.courseInfo}>
               <Text style={styles.courseTitle}>{recentCourse.title}</Text>
-              <Text style={styles.courseSubtitle}>{recentCourse.category}</Text>
+              <Text style={styles.courseSubtitle} numberOfLines={2}>
+                {recentCourse.description ||
+                  "Learn essential computer and internet skills for everyday use"}
+              </Text>
+
+              <View style={styles.courseMetaRow}>
+                <View style={styles.metaItem}>
+                  <Feather
+                    name="clock"
+                    size={14}
+                    color={COLORS.textSecondary}
+                  />
+                  <Text style={styles.courseMetaText}>4h 30m</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Feather
+                    name="book-open"
+                    size={14}
+                    color={COLORS.textSecondary}
+                  />
+                  <Text style={styles.courseMetaText}>12 lessons</Text>
+                </View>
+              </View>
 
               <View style={styles.progressContainer}>
                 <View style={styles.progressBarBg}>
@@ -195,34 +238,34 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
 
-        {/* Today's Schedule Section */}
-        <View style={styles.sectionHeaderContainer}>
-          <Text style={styles.sectionTitle}>Today's schedule</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
+        <View style={styles.centeredSectionHeader}>
+          <Text style={styles.sectionTitle}>Today's Schedule</Text>
         </View>
 
         <TouchableOpacity style={styles.scheduleCard}>
-          <View style={styles.scheduleIconPlaceholder}></View>
-          <View style={styles.scheduleContent}>
-            <Text style={styles.scheduleTitle}>Basics of Microfinance</Text>
-            <Text style={styles.scheduleTime}>10:00 AM - 11:30 AM</Text>
+          <View style={styles.scheduleIconPlaceholder}>
+            <MaterialCommunityIcons name="play" size={24} color="#0284C7" />
           </View>
-          <TouchableOpacity style={styles.playButtonMini}>
-            <Text style={styles.playIconMini}>▶</Text>
-          </TouchableOpacity>
+          <View style={styles.scheduleContent}>
+            <Text style={styles.scheduleTitle}>User Research Methods</Text>
+            <Text style={styles.scheduleTime}>UX Design Principle</Text>
+          </View>
+          <View style={styles.timePill}>
+            <Text style={styles.timePillText}>10:00 AM</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.scheduleCard}>
-          <View style={styles.scheduleIconPlaceholder}></View>
-          <View style={styles.scheduleContent}>
-            <Text style={styles.scheduleTitle}>Risk Management</Text>
-            <Text style={styles.scheduleTime}>02:00 PM - 03:00 PM</Text>
+          <View style={styles.scheduleIconPlaceholder}>
+            <MaterialCommunityIcons name="play" size={24} color="#0284C7" />
           </View>
-          <TouchableOpacity style={styles.playButtonMini}>
-            <Text style={styles.playIconMini}>▶</Text>
-          </TouchableOpacity>
+          <View style={styles.scheduleContent}>
+            <Text style={styles.scheduleTitle}>State Management</Text>
+            <Text style={styles.scheduleTime}>React Fundamentals</Text>
+          </View>
+          <View style={styles.timePill}>
+            <Text style={styles.timePillText}>02:30 AM</Text>
+          </View>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -232,7 +275,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#FFFFF4", // Matches global light cream background
   },
   scrollContent: {
     paddingTop: 10,
@@ -245,9 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    backgroundColor: "transparent",
   },
   userInfo: {
     flexDirection: "row",
@@ -268,45 +309,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   welcomeText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: "500",
-  },
-  nameText: {
-    fontSize: 22,
-    color: COLORS.secondary,
+    fontSize: 16,
+    color: "#000",
     fontWeight: "bold",
   },
-  userEmail: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+  nameText: {
+    fontSize: 20,
+    color: "#D0972B", // Gold color from mockup
+    fontWeight: "600",
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
   },
-  actionBtn: {
-    backgroundColor: "#FEE2E2",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-  actionIcon: {
-    color: "#DC2626",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
   notificationBtn: {
-    padding: 10,
+    marginRight: 15,
   },
   bellIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#325A73",
+    fontSize: 22,
+  },
+  logoutBtn: {
+    padding: 5,
+  },
+  logoutIcon: {
+    fontSize: 22,
   },
   statsScroll: {
     paddingLeft: 20,
@@ -315,34 +341,33 @@ const styles = StyleSheet.create({
   statCard: {
     width: 140,
     padding: 15,
-    borderRadius: 16,
+    borderRadius: 12,
     marginRight: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textSecondary,
     marginBottom: 10,
   },
   statBottom: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
   },
   statValue: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "400",
     color: "#000",
   },
   iconPlaceholder: {
     width: 28,
     height: 28,
     borderRadius: 6,
-    backgroundColor: "#E2E8F0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statIcon: {
+    fontSize: 14,
   },
   sectionHeaderContainer: {
     flexDirection: "row",
@@ -358,8 +383,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: "600",
+    color: "#000",
   },
   courseCard: {
     marginHorizontal: 20,
@@ -368,40 +392,55 @@ const styles = StyleSheet.create({
     padding: 15,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#325A73",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom: 30, // added margin bottom
+    marginBottom: 30,
   },
   courseImagePlaceholder: {
-    height: 120,
+    height: 140,
     backgroundColor: "#F1F5F9",
     borderRadius: 12,
     marginBottom: 15,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 12,
+    alignItems: "flex-start",
   },
-  cardIconPlaceholder: {
-    width: 40,
-    height: 40,
-    backgroundColor: "#CBD5E1", // simple gray box in center
-    borderRadius: 8,
+  coursePill: {
+    backgroundColor: "#BFDBFE",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  coursePillText: {
+    color: "#1E3A8A",
+    fontSize: 12,
+    fontWeight: "500",
   },
   courseInfo: {
     width: "100%",
   },
   courseTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
     color: "#000",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   courseSubtitle: {
     fontSize: 14,
     color: COLORS.textSecondary,
     marginBottom: 15,
+    lineHeight: 20,
+  },
+  courseMetaRow: {
+    flexDirection: "row",
+    marginBottom: 15,
+    alignItems: "center",
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 20,
+  },
+  courseMetaText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginLeft: 6,
   },
   progressContainer: {
     width: "100%",
@@ -427,8 +466,12 @@ const styles = StyleSheet.create({
   },
   progressPercentage: {
     fontSize: 13,
-    fontWeight: "600",
     color: COLORS.textSecondary,
+  },
+  centeredSectionHeader: {
+    alignItems: "center",
+    marginBottom: 15,
+    marginTop: 10,
   },
   scheduleCard: {
     flexDirection: "row",
@@ -437,42 +480,46 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
     padding: 15,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   scheduleIconPlaceholder: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#E0F2FE",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
+  },
+  schedulePlayIcon: {
+    fontSize: 14,
+    color: "#0284C7",
   },
   scheduleContent: {
     flex: 1,
   },
   scheduleTitle: {
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "500",
     color: "#000",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   scheduleTime: {
     fontSize: 12,
     color: COLORS.textSecondary,
   },
-  playButtonMini: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#E0F2FE",
-    justifyContent: "center",
-    alignItems: "center",
+  timePill: {
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  playIconMini: {
-    color: "#0284C7",
-    fontSize: 12,
-    marginLeft: 2,
+  timePillText: {
+    color: "#166534",
+    fontSize: 11,
+    fontWeight: "500",
   },
 });
 

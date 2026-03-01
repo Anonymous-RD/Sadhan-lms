@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomInput from "../components/CustomInput";
@@ -137,9 +138,12 @@ const LoginScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.logoText}>Sa-Dhan</Text>
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
             Log in to continue your learning journey
@@ -258,10 +262,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     alignItems: "center",
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
+  logoImage: {
+    height: 70,
+    width: 280,
     marginBottom: 10,
   },
   title: {

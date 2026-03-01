@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { Text } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 import LanguageScreen from "../screens/LanguageScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -44,29 +45,50 @@ function MainTabNavigator() {
       <Tab.Screen
         name="Dashboard"
         component={HomeScreen}
-        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>🏠</Text> }}
+        options={{
+          tabBarLabel: "Home",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="home" color={color} size={24} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Courses"
         component={CourseListScreen}
-        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>📖</Text> }}
+        options={{
+          tabBarLabel: "Courses",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="book-open" color={color} size={24} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Wishlist"
         component={WishlistScreen}
-        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>❤️</Text> }}
+        options={{
+          tabBarLabel: "Wishlist",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="heart" color={color} size={24} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarIcon: () => <Text style={{ fontSize: 20 }}>👤</Text> }}
+        options={{
+          tabBarLabel: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="user" color={color} size={24} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
 }
 
 const AppNavigator = () => {
-  const { isBootstrapping, userToken } = React.useContext(AuthContext);
+  const { isBootstrapping, userToken, hasSelectedLanguage } =
+    React.useContext(AuthContext);
 
   if (isBootstrapping) {
     return (
@@ -87,7 +109,9 @@ const AppNavigator = () => {
         {userToken === null ? (
           // No token found, user isn't signed in
           <>
-            <Stack.Screen name="Language" component={LanguageScreen} />
+            {!hasSelectedLanguage && (
+              <Stack.Screen name="Language" component={LanguageScreen} />
+            )}
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Signup" component={SignupScreen} />
           </>
