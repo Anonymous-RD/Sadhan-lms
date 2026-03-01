@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const CourseDetailScreen = ({ route, navigation }) => {
   const { id } = route.params;
@@ -117,21 +118,56 @@ const CourseDetailScreen = ({ route, navigation }) => {
         />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.content}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <View style={styles.header}>
-          <Text style={styles.title}>{course.title}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Instructor</Text>
-              <Text style={styles.statValue}>
-                {course.instructor || "Sa-Dhan Expert"}
+          <View style={styles.tagsRow}>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>
+                {course.category || "Development"}
               </Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statLabel}>Duration</Text>
-              <Text style={styles.statValue}>
-                {course.duration || "Self-paced"}
+            <TouchableOpacity
+              style={styles.quizTag}
+              onPress={() =>
+                progress?.progressPercentage === 100
+                  ? navigation.navigate("Quiz", {
+                      courseId: id,
+                      quiz: course.quiz,
+                    })
+                  : Alert.alert("Not Ready", "Complete all lessons first!")
+              }
+            >
+              <Text style={styles.quizTagText}>Quiz</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.title}>{course.title}</Text>
+          <Text style={styles.subtitle}>
+            By {course.instructor || "Dr. Emily Chen"}
+          </Text>
+
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Feather name="clock" size={14} color="#16A34A" />
+              <Text style={styles.metaText}>
+                {course.modules?.length
+                  ? `${course.modules.length * 1.5}h`
+                  : "4h 30m"}
               </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Feather name="book-open" size={14} color="#0284C7" />
+              <Text style={styles.metaText}>
+                {course.modules?.length || 12} lessons
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <MaterialCommunityIcons name="ribbon" size={14} color="#BE185D" />
+              <Text style={styles.metaText}>Certification</Text>
             </View>
           </View>
 
@@ -151,6 +187,10 @@ const CourseDetailScreen = ({ route, navigation }) => {
                 ]}
               />
             </View>
+            <Text style={styles.progressSubtext}>
+              {progress?.completedModules?.length || 0} of{" "}
+              {course.modules?.length || 0} lessons completed
+            </Text>
           </View>
         </View>
 
@@ -198,55 +238,65 @@ const CourseDetailScreen = ({ route, navigation }) => {
         <View style={styles.tabContent}>
           {activeTab === "Lessons" ? (
             <View style={styles.lessonList}>
-              {course.modules?.map((item, index) => (
-                <View key={item._id} style={styles.lessonItem}>
-                  <View style={styles.lessonInfo}>
-                    <Text style={styles.lessonNumber}>
-                      {String(index + 1).padStart(2, "0")}
-                    </Text>
-                    <View style={styles.lessonTextContainer}>
-                      <Text style={styles.lessonTitle}>{item.title}</Text>
-                      <Text style={styles.lessonDuration}>
-                        {item.duration || "10 min"}
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity
+              {course.modules?.map((item, index) => {
+                const isDone = isCompleted(item._id);
+                // Assume the first uncompleted module is "playing" or next.
+                const isNext =
+                  !isDone &&
+                  (index === 0 || isCompleted(course.modules[index - 1]._id));
+
+                return (
+                  <View
+                    key={item._id}
                     style={[
-                      styles.completeBtn,
-                      isCompleted(item._id) && styles.completedBtn,
+                      styles.lessonItem,
+                      isNext && styles.lessonItemActive,
                     ]}
-                    onPress={() =>
-                      !isCompleted(item._id) && handleMarkComplete(item._id)
-                    }
-                    disabled={isCompleted(item._id)}
                   >
-                    <Text
+                    <View
                       style={[
-                        styles.completeBtnText,
-                        isCompleted(item._id) && styles.completedBtnText,
+                        styles.iconBox,
+                        isDone
+                          ? styles.iconBoxDone
+                          : isNext
+                            ? styles.iconBoxNext
+                            : styles.iconBoxLocked,
                       ]}
                     >
-                      {isCompleted(item._id) ? "✓ Done" : "Mark as Done"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                      {isDone ? (
+                        <Feather name="check" size={16} color="#16A34A" />
+                      ) : isNext ? (
+                        <Feather
+                          name="play"
+                          size={16}
+                          color={COLORS.white}
+                          style={{ marginLeft: 2 }}
+                        />
+                      ) : (
+                        <Feather name="lock" size={14} color="#94A3B8" />
+                      )}
+                    </View>
 
-              {/* Quiz Button */}
-              {progress?.progressPercentage === 100 && (
-                <TouchableOpacity
-                  style={styles.quizBtnMain}
-                  onPress={() =>
-                    navigation.navigate("Quiz", {
-                      courseId: id,
-                      quiz: course.quiz,
-                    })
-                  }
-                >
-                  <Text style={styles.quizBtnTextMain}>Start Final Quiz</Text>
-                </TouchableOpacity>
-              )}
+                    <TouchableOpacity
+                      style={styles.lessonTextContainer}
+                      onPress={() => isNext && handleMarkComplete(item._id)}
+                      disabled={!isNext}
+                    >
+                      <Text
+                        style={[
+                          styles.lessonTitle,
+                          !isDone && !isNext && { color: "#64748B" },
+                        ]}
+                      >
+                        {item.title}
+                      </Text>
+                      <Text style={styles.lessonDuration}>
+                        {item.duration || "15 min"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </View>
           ) : (
             <View style={styles.aboutContent}>
@@ -265,6 +315,13 @@ const CourseDetailScreen = ({ route, navigation }) => {
           )}
         </View>
       </ScrollView>
+
+      {/* Sticky Bottom Action */}
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.continueBtn} onPress={() => {}}>
+          <Text style={styles.continueBtnText}>Continue Learning</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -298,39 +355,69 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingBottom: 5,
+  },
+  tagsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  tag: {
+    backgroundColor: "#DBEAFE",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  tagText: {
+    color: "#1E40AF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  quizTag: {
+    backgroundColor: "#10B981", // Emerald green
+    paddingHorizontal: 15,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  quizTagText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: "600",
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: COLORS.black,
-    marginBottom: 15,
-  },
-  statsRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  stat: {
-    marginRight: 40,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
     marginBottom: 4,
   },
-  statValue: {
+  subtitle: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: COLORS.primary,
+    color: COLORS.textSecondary,
+    marginBottom: 15,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  metaText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginLeft: 6,
   },
   progressSection: {
     backgroundColor: COLORS.white,
-    padding: 15,
+    padding: 16,
     borderRadius: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 10,
   },
   progressHeader: {
     flexDirection: "row",
@@ -340,39 +427,52 @@ const styles = StyleSheet.create({
   progressTitle: {
     fontSize: 14,
     fontWeight: "600",
+    color: COLORS.black,
   },
   progressText: {
     fontSize: 14,
     fontWeight: "bold",
-    color: COLORS.primary,
+    color: "#1E3A8A", // Dark blue from mockup
   },
   progressBarBg: {
-    height: 8,
-    backgroundColor: "#F1F5F9",
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 3,
+    marginBottom: 8,
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: COLORS.primary,
-    borderRadius: 4,
+    backgroundColor: "#1E3A8A",
+    borderRadius: 3,
+  },
+  progressSubtext: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#EFF6FF", // Light blue tab container
     marginHorizontal: 20,
-    padding: 5,
+    padding: 4,
     borderRadius: 12,
     marginBottom: 20,
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: "center",
     borderRadius: 10,
   },
   activeTab: {
     backgroundColor: COLORS.white,
-    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.0,
+    elevation: 1,
   },
   inactiveTab: {
     backgroundColor: "transparent",
@@ -382,14 +482,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   activeTabText: {
-    color: COLORS.primary,
+    color: COLORS.black,
   },
   inactiveTabText: {
     color: COLORS.textSecondary,
   },
   tabContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   lessonList: {
     width: "100%",
@@ -397,66 +497,47 @@ const styles = StyleSheet.create({
   lessonItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    marginBottom: 10,
+    borderRadius: 12,
   },
-  lessonInfo: {
-    flexDirection: "row",
+  lessonItemActive: {
+    backgroundColor: "#EFF6FF", // Active background
+    borderLeftWidth: 4,
+    borderLeftColor: "#1E3A8A",
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
     alignItems: "center",
-    flex: 1,
-  },
-  lessonNumber: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#CBD5E1",
     marginRight: 15,
+  },
+  iconBoxDone: {
+    backgroundColor: "#DCFCE7", // Light green
+  },
+  iconBoxNext: {
+    backgroundColor: "#1E3A8A", // Dark blue
+  },
+  iconBoxLocked: {
+    backgroundColor: "#F1F5F9", // Slate
   },
   lessonTextContainer: {
     flex: 1,
   },
   lessonTitle: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
     color: COLORS.black,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   lessonDuration: {
     fontSize: 12,
     color: COLORS.textSecondary,
-  },
-  completeBtn: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  completedBtn: {
-    backgroundColor: "#DCFCE7",
-    borderColor: "#22C55E",
-  },
-  completeBtnText: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  completedBtnText: {
-    color: "#16A34A",
-  },
-  quizBtnMain: {
-    marginTop: 30,
-    backgroundColor: COLORS.secondary,
-    paddingVertical: 15,
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 3,
-  },
-  quizBtnTextMain: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: "bold",
   },
   aboutContent: {
     width: "100%",
@@ -482,6 +563,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     marginBottom: 5,
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+  continueBtn: {
+    backgroundColor: "#325A73", // Primary deep blue
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  continueBtnText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
+import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
 // These could also come from the API categories eventually
@@ -100,7 +101,7 @@ const CourseListScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Courses</Text>
         <TouchableOpacity style={styles.notificationBtn}>
-          <View style={styles.bellIcon}></View>
+          <Feather name="bell" size={24} color="#334155" />
         </TouchableOpacity>
       </View>
 
@@ -108,16 +109,21 @@ const CourseListScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search Courses"
-            placeholderTextColor={COLORS.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+        {/* Search Bar & Filter */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchContainer}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search Courses"
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <TouchableOpacity style={styles.filterBtn}>
+            <Feather name="filter" size={20} color={COLORS.white} />
+          </TouchableOpacity>
         </View>
 
         {/* Categories */}
@@ -156,7 +162,7 @@ const CourseListScreen = ({ navigation }) => {
               style={styles.courseCard}
               onPress={() =>
                 navigation.navigate("CourseDetail", {
-                  courseId: course._id || course.id,
+                  id: course._id || course.id,
                 })
               }
             >
@@ -171,22 +177,42 @@ const CourseListScreen = ({ navigation }) => {
               <View style={styles.courseHeader}>
                 <Text style={styles.courseTitle}>{course.title}</Text>
                 <TouchableOpacity>
-                  <Text style={styles.heartIcon}>♡</Text>
+                  <Feather
+                    name="heart"
+                    size={20}
+                    color={COLORS.textSecondary}
+                  />
                 </TouchableOpacity>
               </View>
 
               <Text style={styles.courseDesc} numberOfLines={2}>
-                {course.description}
+                {course.description ||
+                  "Learn essential computer and internet skills for everyday use"}
               </Text>
 
-              <View style={styles.courseMeta}>
-                {/* Fallback values for meta details if not in DB yet */}
-                <Text style={styles.metaText}>
-                  🕒 {course.duration || "4h 30m"}
-                </Text>
-                <Text style={styles.metaText}>
-                  📖 {course.modules?.length || 10} lessons
-                </Text>
+              <View style={styles.courseMetaRow}>
+                <View style={styles.metaItem}>
+                  <Feather
+                    name="clock"
+                    size={14}
+                    color={COLORS.textSecondary}
+                  />
+                  <Text style={styles.courseMetaText}>
+                    {course.modules?.length
+                      ? `${course.modules.length * 1.5}h`
+                      : "4h 30m"}
+                  </Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Feather
+                    name="book-open"
+                    size={14}
+                    color={COLORS.textSecondary}
+                  />
+                  <Text style={styles.courseMetaText}>
+                    {course.modules?.length || 10} lessons
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.progressContainer}>
@@ -243,16 +269,29 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.white,
-    marginHorizontal: 20,
     borderRadius: 12,
     paddingHorizontal: 15,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    marginRight: 10,
+  },
+  filterBtn: {
+    backgroundColor: "#D0972B", // Gold from mockup
+    padding: 14,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchIcon: {
     fontSize: 18,
@@ -276,20 +315,20 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   categoryPillActive: {
-    backgroundColor: COLORS.secondary, // Gold color from constants
+    backgroundColor: "#FDE68A", // Beige/Gold highlight
   },
   categoryPillInactive: {
-    backgroundColor: "#EBF8FF", // Light blue background
+    backgroundColor: "#EFF6FF", // Light blue background
   },
   categoryText: {
     fontSize: 14,
     fontWeight: "600",
   },
   categoryTextActive: {
-    color: "#000",
+    color: "#92400E", // Darker gold for text
   },
   categoryTextInactive: {
-    color: "#325A73",
+    color: "#64748B",
   },
   resultsCount: {
     paddingHorizontal: 20,
@@ -308,17 +347,17 @@ const styles = StyleSheet.create({
   },
   courseImagePlaceholder: {
     height: 140,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F8FAFC", // Lighter slate for image placeholder
     borderRadius: 12,
     marginBottom: 15,
-    padding: 10,
+    padding: 12,
+    alignItems: "flex-start",
   },
   tag: {
     backgroundColor: "#DBEAFE",
-    alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 14,
   },
   tagText: {
     color: "#1E40AF",
@@ -329,46 +368,48 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   courseTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#000",
     flex: 1,
   },
-  heartIcon: {
-    fontSize: 24,
-    color: COLORS.textSecondary,
-  },
   courseDesc: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 15,
-    lineHeight: 20,
-  },
-  courseMeta: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  metaText: {
     fontSize: 13,
     color: COLORS.textSecondary,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  courseMetaRow: {
+    flexDirection: "row",
+    marginBottom: 15,
+    alignItems: "center",
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 20,
+  },
+  courseMetaText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginLeft: 6,
   },
   progressContainer: {
     marginTop: 5,
   },
   progressBarBg: {
-    height: 6,
+    height: 4,
     backgroundColor: "#E2E8F0",
-    borderRadius: 3,
-    marginBottom: 8,
+    borderRadius: 2,
+    marginBottom: 6,
   },
   progressBarFill: {
-    height: 6,
-    backgroundColor: COLORS.primary,
-    borderRadius: 3,
+    height: 4,
+    backgroundColor: "#1E3A8A", // Dark blue from mockup
+    borderRadius: 2,
   },
   progressTextContainer: {
     flexDirection: "row",
