@@ -22,9 +22,10 @@ const AnimatedToast = ({
   message,
   type = "success",
   duration = 1800,
+  bottomOffset = 90,
   onHide,
 }) => {
-  const translateY = useRef(new Animated.Value(-80)).current;
+  const translateY = useRef(new Animated.Value(80)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -48,7 +49,7 @@ const AnimatedToast = ({
     const hide = () => {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: -80,
+          toValue: 80,
           duration: 180,
           useNativeDriver: true,
         }),
@@ -85,6 +86,7 @@ const AnimatedToast = ({
           transform: [{ translateY }],
           opacity,
           backgroundColor: config.backgroundColor,
+          bottom: bottomOffset,
         },
       ]}
     >
@@ -101,7 +103,6 @@ const AnimatedToast = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 12,
     left: 16,
     right: 16,
     borderRadius: 10,

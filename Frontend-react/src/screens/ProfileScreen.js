@@ -1,12 +1,10 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
@@ -14,6 +12,7 @@ import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
+import AnimatedToast from "../components/AnimatedToast";
 
 const ProfileScreen = ({ navigation }) => {
   const { userInfo, logout } = useContext(AuthContext);
@@ -21,6 +20,11 @@ const ProfileScreen = ({ navigation }) => {
   const [stats, setStats] = useState({
     enrolled: 0,
     certificates: 0,
+  });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
   });
 
   const userName = userInfo?.name || "Learner";
@@ -32,15 +36,11 @@ const ProfileScreen = ({ navigation }) => {
   const weeklyGoalDone = 4;
   const weeklyGoalTotal = 5;
 
-  useFocusEffect(
-    useCallback(() => {
-      if (userInfo) {
-        fetchDashboardData();
-      }
-    }, [userInfo]),
-  );
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       const coursesRes = await apiService.get("/courses");
@@ -67,19 +67,27 @@ const ProfileScreen = ({ navigation }) => {
           certificates: certCount || 2, // fallback to mockup number if 0 for demo
         });
       }
-    } catch (e) {
-      console.log("Error fetching profile stats:", e);
+    } catch (_e) {
+      showToast("Failed to load profile stats.", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (userInfo) {
+        fetchDashboardData();
+      }
+    }, [fetchDashboardData, userInfo]),
+  );
 
   const handleLogout = async () => {
     try {
       await logout();
       // Navigation is handled by AuthContext state change in AppNavigator
-    } catch (e) {
-      console.log("Logout failed", e);
+    } catch (_e) {
+      showToast("Logout failed. Please try again.", "error");
     }
   };
 
@@ -259,6 +267,12 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={{ height: 20 }} />
       </ScrollView>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

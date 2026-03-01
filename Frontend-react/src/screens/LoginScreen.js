@@ -7,7 +7,6 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  ActivityIndicator,
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +14,7 @@ import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
+import AnimatedToast from "../components/AnimatedToast";
 
 const LoginScreen = ({ navigation }) => {
   const [loginMethod, setLoginMethod] = useState("otp"); // "otp" or "password"
@@ -22,9 +22,18 @@ const LoginScreen = ({ navigation }) => {
   const [countryCode, setCountryCode] = useState("+91");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
   const { login, isLoading } = useContext(AuthContext);
   const inputRefs = useRef([]);
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
   const handleOtpChange = (value, index) => {
     const newOtp = [...otp];
@@ -52,10 +61,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (!identifier) {
-      Alert.alert(
-        "Input Required",
-        "Please enter your Email or Mobile Number.",
-      );
+      showToast("Please enter your Email or Mobile Number.", "error");
       return;
     }
 
@@ -71,19 +77,13 @@ const LoginScreen = ({ navigation }) => {
     if (loginMethod === "otp") {
       credential = otp.join("");
       if (credential.length !== 6) {
-        Alert.alert(
-          "Invalid OTP",
-          "Please enter the 6-digit code sent to you.",
-        );
+        showToast("Please enter the 6-digit OTP.", "error");
         return;
       }
     } else {
       credential = password;
       if (!credential) {
-        Alert.alert(
-          "Password Required",
-          "Please enter your password to continue.",
-        );
+        showToast("Please enter your password.", "error");
         return;
       }
     }
@@ -107,9 +107,9 @@ const LoginScreen = ({ navigation }) => {
           ],
         );
       } else {
-        Alert.alert(
-          "Login Failed",
+        showToast(
           message || "Please check your credentials and try again.",
+          "error",
         );
       }
     }
@@ -237,13 +237,20 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>{"Don't have an account? "}</Text>
             <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
               <Text style={styles.footerLink}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        bottomOffset={24}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

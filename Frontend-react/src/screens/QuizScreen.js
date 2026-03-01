@@ -11,12 +11,22 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import apiService from "../services/apiService";
+import AnimatedToast from "../components/AnimatedToast";
 
 const QuizScreen = ({ route, navigation }) => {
   const { courseId, quiz } = route.params;
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
   const currentQuestion = quiz[currentQuestionIndex];
 
@@ -44,10 +54,7 @@ const QuizScreen = ({ route, navigation }) => {
 
   const handleSubmit = async () => {
     if (answers.length < quiz.length) {
-      Alert.alert(
-        "Incomplete",
-        "Please answer all questions before submitting.",
-      );
+      showToast("Please answer all questions before submitting.", "error");
       return;
     }
 
@@ -81,7 +88,7 @@ const QuizScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Quiz submission error:", error);
-      Alert.alert("Error", "Failed to submit quiz. Please try again.");
+      showToast("Failed to submit quiz. Please try again.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -176,6 +183,13 @@ const QuizScreen = ({ route, navigation }) => {
           )}
         </TouchableOpacity>
       </View>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        bottomOffset={24}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

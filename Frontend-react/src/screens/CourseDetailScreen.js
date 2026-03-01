@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import AnimatedToast from "../components/AnimatedToast";
 
 const CourseDetailScreen = ({ route, navigation }) => {
   const { id } = route.params;
@@ -22,14 +23,17 @@ const CourseDetailScreen = ({ route, navigation }) => {
   const [activeTab, setActiveTab] = useState("Lessons");
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(null);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
-  useEffect(() => {
-    if (userInfo) {
-      fetchCourseDetails();
-    }
-  }, [id, userInfo]);
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
-  const fetchCourseDetails = async () => {
+  const fetchCourseDetails = useCallback(async () => {
     setIsLoading(true);
     try {
       const [courseRes, progressRes] = await Promise.all([
@@ -42,19 +46,26 @@ const CourseDetailScreen = ({ route, navigation }) => {
       setProgress(progressRes.data);
     } catch (error) {
       console.log("Error fetching course details:", error);
-      Alert.alert("Error", "Failed to load course details.");
+      showToast("Failed to load course details.", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (userInfo) {
+      fetchCourseDetails();
+    }
+  }, [fetchCourseDetails, userInfo]);
 
   const handleEnroll = async () => {
     try {
       await apiService.post("/progress/enroll", { courseId: id });
       fetchCourseDetails();
+      showToast("Enrolled successfully", "success");
     } catch (error) {
       console.error("Enrollment error:", error);
-      Alert.alert("Error", "Failed to enroll in the course.");
+      showToast("Failed to enroll in the course.", "error");
     }
   };
 
@@ -83,8 +94,8 @@ const CourseDetailScreen = ({ route, navigation }) => {
           ],
         );
       }
-    } catch (error) {
-      Alert.alert("Error", "Failed to update progress.");
+    } catch (_error) {
+      showToast("Failed to update progress.", "error");
     }
   };
 
@@ -171,7 +182,7 @@ const CourseDetailScreen = ({ route, navigation }) => {
                       courseId: id,
                       quiz: course.quiz,
                     })
-                  : Alert.alert("Not Ready", "Complete all lessons first!")
+                  : showToast("Complete all lessons first!", "info")
               }
             >
               <Text style={styles.quizTagText}>Quiz</Text>
@@ -336,7 +347,7 @@ const CourseDetailScreen = ({ route, navigation }) => {
               <Text style={styles.description}>{course.description}</Text>
               {course.outcomes && course.outcomes.length > 0 && (
                 <View style={styles.learningOutcomes}>
-                  <Text style={styles.outcomesTitle}>What you'll learn</Text>
+                  <Text style={styles.outcomesTitle}>{"What you'll learn"}</Text>
                   {course.outcomes.map((outcome, idx) => (
                     <Text key={idx} style={styles.outcomeItem}>
                       • {outcome}
@@ -367,6 +378,13 @@ const CourseDetailScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         )}
       </View>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        bottomOffset={24}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

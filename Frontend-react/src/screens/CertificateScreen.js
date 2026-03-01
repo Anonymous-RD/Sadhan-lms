@@ -1,41 +1,49 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
-  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import apiService from "../services/apiService";
+import AnimatedToast from "../components/AnimatedToast";
 
 const CertificateScreen = ({ route, navigation }) => {
   const { courseId } = route.params;
   const [certificateData, setCertificateData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
-  useEffect(() => {
-    fetchCertificate();
-  }, [courseId]);
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
-  const fetchCertificate = async () => {
+  const fetchCertificate = useCallback(async () => {
     try {
       const res = await apiService.get(`/certificate/${courseId}`);
       setCertificateData(res.data);
     } catch (error) {
       console.error("Certificate fetch error:", error);
-      Alert.alert(
-        "Not Eligible",
-        "You need to pass the quiz with 60% or higher to view the certificate.",
+      showToast(
+        "Pass the quiz with 60% or higher to view the certificate.",
+        "error",
       );
-      navigation.goBack();
+      setTimeout(() => navigation.goBack(), 900);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [courseId, navigation]);
+
+  useEffect(() => {
+    fetchCertificate();
+  }, [fetchCertificate]);
 
   if (isLoading) {
     return (
@@ -91,15 +99,17 @@ const CertificateScreen = ({ route, navigation }) => {
 
       <TouchableOpacity
         style={styles.downloadBtn}
-        onPress={() =>
-          Alert.alert(
-            "Coming Soon",
-            "PDF Download will be implemented in the next v1 update.",
-          )
-        }
+        onPress={() => showToast("PDF download coming in next update.", "info")}
       >
         <Text style={styles.downloadText}>Download PDF</Text>
       </TouchableOpacity>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        bottomOffset={24}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

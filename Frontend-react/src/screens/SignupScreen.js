@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +12,7 @@ import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
+import AnimatedToast from "../components/AnimatedToast";
 
 const SignupScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -21,7 +21,16 @@ const SignupScreen = ({ navigation }) => {
   const [countryCode, setCountryCode] = useState("+91");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
   const { register, isLoading } = useContext(AuthContext);
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
   const validateEmail = (email) => {
     return String(email)
@@ -34,39 +43,30 @@ const SignupScreen = ({ navigation }) => {
   const handleSignup = async () => {
     // Basic presence check
     if (!fullName || !email || !mobileNumber || !password || !confirmPassword) {
-      Alert.alert(
-        "Required Fields",
-        "Please fill in all the details to continue.",
-      );
+      showToast("Please fill in all the details to continue.", "error");
       return;
     }
 
     // Email validation
     if (!validateEmail(email)) {
-      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      showToast("Please enter a valid email address.", "error");
       return;
     }
 
     // Mobile number validation (simple check for length after country code)
     if (mobileNumber.length < 10) {
-      Alert.alert(
-        "Invalid Mobile",
-        "Please enter a valid 10-digit mobile number.",
-      );
+      showToast("Please enter a valid 10-digit mobile number.", "error");
       return;
     }
 
     // Password validation
     if (password.length < 6) {
-      Alert.alert(
-        "Weak Password",
-        "Password should be at least 6 characters long.",
-      );
+      showToast("Password should be at least 6 characters long.", "error");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Mismatch", "Passwords do not match. Please verify.");
+      showToast("Passwords do not match. Please verify.", "error");
       return;
     }
 
@@ -79,18 +79,15 @@ const SignupScreen = ({ navigation }) => {
 
     if (success) {
       if (needsLogin) {
-        Alert.alert(
-          "Account Created",
-          "You've successfully registered! Please log in with your credentials.",
-        );
-        navigation.navigate("Login");
+        showToast("Account created. Please log in.", "success");
+        setTimeout(() => navigation.navigate("Login"), 700);
       } else {
         // Auto-login success handled by AuthContext
       }
     } else {
-      Alert.alert(
-        "Registration Error",
+      showToast(
         message || "Something went wrong. Please try again later.",
+        "error",
       );
     }
   };
@@ -199,6 +196,13 @@ const SignupScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        bottomOffset={24}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

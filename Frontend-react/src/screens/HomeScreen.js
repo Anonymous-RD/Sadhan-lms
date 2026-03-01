@@ -1,20 +1,20 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
-import { Alert } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import AnimatedToast from "../components/AnimatedToast";
 
 const HomeScreen = ({ navigation }) => {
   const { userInfo, logout } = useContext(AuthContext);
@@ -26,19 +26,20 @@ const HomeScreen = ({ navigation }) => {
     hours: 0,
     certificates: 0,
   });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
   const userName = userInfo?.name || "Learner";
   const userInitials = userName.substring(0, 1).toUpperCase();
 
-  useFocusEffect(
-    useCallback(() => {
-      if (userInfo) {
-        fetchDashboardData();
-      }
-    }, [userInfo]),
-  );
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       const coursesRes = await apiService.get("/courses");
@@ -92,12 +93,20 @@ const HomeScreen = ({ navigation }) => {
           .slice(0, 2);
         setScheduleCourses(remainingCourses);
       }
-    } catch (e) {
-      console.log("Error fetching dashboard data:", e);
+    } catch (_e) {
+      showToast("Failed to load dashboard data.", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (userInfo) {
+        fetchDashboardData();
+      }
+    }, [fetchDashboardData, userInfo]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -265,7 +274,7 @@ const HomeScreen = ({ navigation }) => {
         )}
 
         <View style={styles.centeredSectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Schedule</Text>
+          <Text style={styles.sectionTitle}>{"Today's Schedule"}</Text>
         </View>
 
         {scheduleCourses && scheduleCourses.length > 0 ? (
@@ -313,6 +322,12 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
       </ScrollView>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

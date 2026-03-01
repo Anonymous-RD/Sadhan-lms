@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,28 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { COLORS } from "../utils/constants";
 import apiService from "../services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
+import AnimatedToast from "../components/AnimatedToast";
 
 const CertificateListScreen = ({ navigation }) => {
   const [certificates, setCertificates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
-  const fetchCertificates = async () => {
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
+
+  const fetchCertificates = useCallback(async () => {
     try {
       setIsLoading(true);
       const coursesRes = await apiService.get("/courses");
@@ -43,17 +52,17 @@ const CertificateListScreen = ({ navigation }) => {
         });
         setCertificates(earned);
       }
-    } catch (e) {
-      console.log("Error fetching certificates:", e);
+    } catch (_e) {
+      showToast("Failed to load certificates.", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchCertificates();
-    }, []),
+    }, [fetchCertificates]),
   );
 
   const renderItem = ({ item }) => (
@@ -123,6 +132,12 @@ const CertificateListScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };
