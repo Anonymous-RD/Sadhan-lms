@@ -144,12 +144,7 @@ const HomeScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Stats Section */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.statsScroll}
-          contentContainerStyle={{ paddingHorizontal: 20 }}
-        >
+        <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: "#E3F2FD" }]}>
             <Text style={styles.statLabel}>Courses Enrolled</Text>
             <View style={styles.statBottom}>
@@ -187,7 +182,7 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-        </ScrollView>
+        </View>
 
         {/* Continue Learning Section */}
         <View style={styles.sectionHeaderContainer}>
@@ -394,15 +389,17 @@ const styles = StyleSheet.create({
   logoutIcon: {
     fontSize: 22,
   },
-  statsScroll: {
-    paddingLeft: 20,
+  statsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
     marginBottom: 30,
+    justifyContent: "space-between",
   },
   statCard: {
-    width: 140,
-    padding: 15,
+    flex: 1,
+    padding: 10,
     borderRadius: 12,
-    marginRight: 15,
+    marginHorizontal: 4,
   },
   statLabel: {
     fontSize: 12,

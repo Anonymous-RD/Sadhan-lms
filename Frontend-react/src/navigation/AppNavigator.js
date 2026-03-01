@@ -1,6 +1,5 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { Text } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -18,7 +17,7 @@ import CertificateScreen from "../screens/CertificateScreen";
 import CertificateListScreen from "../screens/CertificateListScreen";
 import { COLORS } from "../utils/constants";
 
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, StyleSheet, Text, Image } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const Stack = createNativeStackNavigator();
@@ -206,8 +205,20 @@ const AppNavigator = () => {
 
   if (isBootstrapping) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={styles.bootstrapContainer}>
+        <View style={styles.bootstrapContent}>
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={styles.bootstrapLogo}
+            resizeMode="contain"
+          />
+          <Text style={styles.bootstrapTitle}>Sa-Dhan</Text>
+        </View>
+        <ActivityIndicator
+          size="large"
+          color={COLORS.primary}
+          style={styles.bootstrapLoader}
+        />
       </View>
     );
   }
@@ -259,5 +270,33 @@ const AppNavigator = () => {
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  bootstrapContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  bootstrapContent: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  bootstrapLogo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
+  },
+  bootstrapTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#325A73",
+    letterSpacing: 1,
+  },
+  bootstrapLoader: {
+    position: "absolute",
+    bottom: 80,
+  },
+});
 
 export default AppNavigator;
