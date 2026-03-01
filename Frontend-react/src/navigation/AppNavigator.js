@@ -32,13 +32,18 @@ function MainTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+          marginTop: 4,
+        },
         tabBarStyle: {
           backgroundColor: COLORS.white,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
-          height: 60,
+          height: 70,
           paddingBottom: 10,
-          paddingTop: 5,
+          paddingTop: 10,
         },
       }}
     >
@@ -47,8 +52,13 @@ function MainTabNavigator() {
         component={HomeScreen}
         options={{
           tabBarLabel: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="home" color={color} size={24} />
+          tabBarIcon: ({ color, focused }) => (
+            <Feather
+              name="home"
+              color={color}
+              size={24}
+              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
+            />
           ),
         }}
       />
@@ -57,8 +67,13 @@ function MainTabNavigator() {
         component={CourseListScreen}
         options={{
           tabBarLabel: "Courses",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="book-open" color={color} size={24} />
+          tabBarIcon: ({ color, focused }) => (
+            <Feather
+              name="book-open"
+              color={color}
+              size={24}
+              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
+            />
           ),
         }}
       />
@@ -67,8 +82,13 @@ function MainTabNavigator() {
         component={WishlistScreen}
         options={{
           tabBarLabel: "Wishlist",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="heart" color={color} size={24} />
+          tabBarIcon: ({ color, focused }) => (
+            <Feather
+              name="heart"
+              color={color}
+              size={24}
+              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
+            />
           ),
         }}
       />
@@ -77,8 +97,13 @@ function MainTabNavigator() {
         component={ProfileScreen}
         options={{
           tabBarLabel: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="user" color={color} size={24} />
+          tabBarIcon: ({ color, focused }) => (
+            <Feather
+              name="user"
+              color={color}
+              size={24}
+              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
+            />
           ),
         }}
       />

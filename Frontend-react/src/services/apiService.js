@@ -1,9 +1,9 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const API_URL = "http://10.13.109.159:5000";
+const API_URL = "http://10.13.109.159:5000";
 
-// export const API_URL = "http://192.168.29.162:5000";
+// const API_URL = "http://192.168.29.162:5000";
 
 const apiService = axios.create({
   baseURL: API_URL,
@@ -12,6 +12,8 @@ const apiService = axios.create({
   },
   timeout: 10000, // 10 seconds timeout for production feel
 });
+
+export { API_URL };
 
 // Add a request interceptor to inject the JWT token
 apiService.interceptors.request.use(
