@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import AnimatedToast from "../components/AnimatedToast";
 
 // These could also come from the API categories eventually
 const CATEGORIES = ["All", "Development", "Design", "Business", "Soft Skill"];
@@ -26,21 +28,39 @@ const CourseListScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [progressData, setProgressData] = useState({});
+  const [wishlistCourseIds, setWishlistCourseIds] = useState(new Set());
+  const [wishlistActionLoading, setWishlistActionLoading] = useState({});
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
 
   useFocusEffect(
     useCallback(() => {
       if (userInfo) {
-        fetchCourses();
+        fetchCoursesAndWishlist();
       }
     }, [userInfo]),
   );
 
-  const fetchCourses = async () => {
+  const fetchCoursesAndWishlist = async () => {
     try {
       setIsLoading(true);
-      const res = await apiService.get("/courses");
-      const fetchedCourses = res.data || [];
+      const [coursesRes, wishlistRes] = await Promise.all([
+        apiService.get("/courses"),
+        apiService.get("/wishlist").catch(() => ({ data: [] })),
+      ]);
+
+      const fetchedCourses = coursesRes.data || [];
       setCourses(fetchedCourses);
+      setWishlistCourseIds(
+        new Set((wishlistRes.data || []).map((course) => course._id || course.id)),
+      );
 
       // Fetch progress for each course
       const progressPromises = fetchedCourses.map((c) =>
@@ -68,10 +88,49 @@ const CourseListScreen = ({ navigation }) => {
   const handleEnroll = async (courseId) => {
     try {
       await apiService.post("/progress/enroll", { courseId });
-      fetchCourses(); // Refresh to show Continue Learning
+      fetchCoursesAndWishlist(); // Refresh to show Continue Learning
     } catch (error) {
       console.error("Enrollment error:", error);
       Alert.alert("Error", "Failed to enroll in the course.");
+    }
+  };
+
+  const toggleWishlist = async (courseId, isWishlisted) => {
+    setWishlistActionLoading((prev) => ({ ...prev, [courseId]: true }));
+
+    // Optimistic UI update
+    setWishlistCourseIds((prev) => {
+      const next = new Set(prev);
+      if (isWishlisted) {
+        next.delete(courseId);
+      } else {
+        next.add(courseId);
+      }
+      return next;
+    });
+
+    try {
+      if (isWishlisted) {
+        await apiService.delete(`/wishlist/${courseId}`);
+        showToast("Removed from wishlist", "info");
+      } else {
+        await apiService.post(`/wishlist/${courseId}`);
+        showToast("Added to wishlist", "success");
+      }
+    } catch (_error) {
+      // Revert optimistic update on failure
+      setWishlistCourseIds((prev) => {
+        const next = new Set(prev);
+        if (isWishlisted) {
+          next.add(courseId);
+        } else {
+          next.delete(courseId);
+        }
+        return next;
+      });
+      showToast("Failed to update wishlist", "error");
+    } finally {
+      setWishlistActionLoading((prev) => ({ ...prev, [courseId]: false }));
     }
   };
 
@@ -189,11 +248,29 @@ const CourseListScreen = ({ navigation }) => {
 
               <View style={styles.courseHeader}>
                 <Text style={styles.courseTitle}>{course.title}</Text>
-                <TouchableOpacity>
-                  <Feather
-                    name="heart"
+                <TouchableOpacity
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    const courseId = course._id || course.id;
+                    toggleWishlist(
+                      courseId,
+                      wishlistCourseIds.has(courseId),
+                    );
+                  }}
+                  disabled={wishlistActionLoading[course._id || course.id]}
+                >
+                  <MaterialCommunityIcons
+                    name={
+                      wishlistCourseIds.has(course._id || course.id)
+                        ? "heart"
+                        : "heart-outline"
+                    }
                     size={20}
-                    color={COLORS.textSecondary}
+                    color={
+                      wishlistCourseIds.has(course._id || course.id)
+                        ? COLORS.secondary
+                        : COLORS.textSecondary
+                    }
                   />
                 </TouchableOpacity>
               </View>
@@ -275,6 +352,12 @@ const CourseListScreen = ({ navigation }) => {
           ))
         )}
       </ScrollView>
+      <AnimatedToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 };

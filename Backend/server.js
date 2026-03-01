@@ -25,6 +25,7 @@ app.use("/courses", require("./src/routes/courseRoutes"));
 app.use("/progress", require("./src/routes/progressRoutes"));
 app.use("/quiz", require("./src/routes/quizRoutes"));
 app.use("/certificate", require("./src/routes/certificateRoutes"));
+app.use("/wishlist", require("./src/routes/wishlistRoutes"));
 
 const PORT = process.env.PORT || 5000;
 
