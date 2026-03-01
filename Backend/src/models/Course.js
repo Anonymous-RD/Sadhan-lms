@@ -32,6 +32,11 @@ const courseSchema = new mongoose.Schema(
       type: String,
       default: "English",
     },
+    category: {
+      type: String,
+      required: true,
+      default: "Development",
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

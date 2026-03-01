@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Course = require("../models/Course");
+const Progress = require("../models/Progress");
 const jwt = require("jsonwebtoken");
 
 // This is DEMO v0 implementation
@@ -64,6 +66,26 @@ const verifyOtp = async (req, res) => {
         token: generateToken(user._id),
         message: "Authentication successful",
       });
+
+      // Default Enrollment Check
+      try {
+        const existingEnrolled = await Progress.exists({ userId: user._id });
+        if (!existingEnrolled) {
+          const defaultCourse = await Course.findOne().sort({ createdAt: 1 });
+          if (defaultCourse) {
+            await Progress.create({
+              userId: user._id,
+              courseId: defaultCourse._id,
+              completedModules: [],
+            });
+            console.log(
+              `Auto-enrolled new user ${user.email} in course: ${defaultCourse.title}`,
+            );
+          }
+        }
+      } catch (enrollError) {
+        console.error("Auto-enrollment error during OTP verify:", enrollError);
+      }
     } else {
       res.status(400).json({ message: "Invalid OTP" });
     }
@@ -79,12 +101,10 @@ const register = async (req, res) => {
   const { name, email, password, phoneNumber, role } = req.body;
 
   if (!name || !email || !password || !phoneNumber) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Please provide all required fields (name, email, password, phoneNumber)",
-      });
+    return res.status(400).json({
+      message:
+        "Please provide all required fields (name, email, password, phoneNumber)",
+    });
   }
 
   try {
@@ -114,6 +134,26 @@ const register = async (req, res) => {
         role: user.role,
         token: generateToken(user._id),
       });
+
+      // Default Enrollment
+      try {
+        const defaultCourse = await Course.findOne().sort({ createdAt: 1 });
+        if (defaultCourse) {
+          await Progress.create({
+            userId: user._id,
+            courseId: defaultCourse._id,
+            completedModules: [],
+          });
+          console.log(
+            `Auto-enrolled new user ${user.email} in course: ${defaultCourse.title}`,
+          );
+        }
+      } catch (enrollError) {
+        console.error(
+          "Auto-enrollment error during registration:",
+          enrollError,
+        );
+      }
     } else {
       res.status(400).json({ message: "Invalid user data" });
     }
