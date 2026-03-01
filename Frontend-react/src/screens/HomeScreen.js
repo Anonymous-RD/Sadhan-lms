@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
+import { useFocusEffect } from "@react-navigation/native";
 import { Alert } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -19,6 +20,7 @@ const HomeScreen = ({ navigation }) => {
   const { userInfo, logout } = useContext(AuthContext);
   const [recentCourse, setRecentCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [scheduleCourses, setScheduleCourses] = useState([]);
   const [stats, setStats] = useState({
     enrolled: 0,
     hours: 0,
@@ -28,11 +30,13 @@ const HomeScreen = ({ navigation }) => {
   const userName = userInfo?.name || "Learner";
   const userInitials = userName.substring(0, 1).toUpperCase();
 
-  useEffect(() => {
-    if (userInfo) {
-      fetchDashboardData();
-    }
-  }, [userInfo]);
+  useFocusEffect(
+    useCallback(() => {
+      if (userInfo) {
+        fetchDashboardData();
+      }
+    }, [userInfo]),
+  );
 
   const fetchDashboardData = async () => {
     try {
@@ -49,15 +53,25 @@ const HomeScreen = ({ navigation }) => {
         let enrolledCount = 0;
         let certCount = 0;
         let mostRecent = null;
+        let totalHours = 0;
 
         progressResults.forEach((res, index) => {
           if (res.data) {
             enrolledCount++;
             if (res.data.certificateGenerated) certCount++;
-            if (!mostRecent) {
+
+            // Use modules to estimate hours (1.5 hours per module)
+            const numModules = courses[index].modules?.length || 0;
+            totalHours += numModules * 1.5;
+
+            if (
+              !mostRecent ||
+              new Date(res.data.updatedAt) > new Date(mostRecent.lastAccessed)
+            ) {
               mostRecent = {
                 ...courses[index],
                 progressPercentage: res.data.progressPercentage,
+                lastAccessed: res.data.updatedAt,
               };
             }
           }
@@ -68,9 +82,15 @@ const HomeScreen = ({ navigation }) => {
         setRecentCourse(mostRecent);
         setStats({
           enrolled: enrolledCount || courses.length,
-          hours: enrolledCount * 4.5,
+          hours: totalHours || enrolledCount * 4.5,
           certificates: certCount,
         });
+
+        // Filter out the most recent course and use the next ones for schedule
+        const remainingCourses = courses
+          .filter((c) => c._id !== mostRecent?._id)
+          .slice(0, 2);
+        setScheduleCourses(remainingCourses);
       }
     } catch (e) {
       console.log("Error fetching dashboard data:", e);
@@ -200,7 +220,11 @@ const HomeScreen = ({ navigation }) => {
                     size={14}
                     color={COLORS.textSecondary}
                   />
-                  <Text style={styles.courseMetaText}>4h 30m</Text>
+                  <Text style={styles.courseMetaText}>
+                    {recentCourse.modules?.length
+                      ? `${recentCourse.modules.length * 1.5}h`
+                      : "4h 30m"}
+                  </Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Feather
@@ -208,7 +232,9 @@ const HomeScreen = ({ navigation }) => {
                     size={14}
                     color={COLORS.textSecondary}
                   />
-                  <Text style={styles.courseMetaText}>12 lessons</Text>
+                  <Text style={styles.courseMetaText}>
+                    {recentCourse.modules?.length || 0} lessons
+                  </Text>
                 </View>
               </View>
 
@@ -242,31 +268,50 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Today's Schedule</Text>
         </View>
 
-        <TouchableOpacity style={styles.scheduleCard}>
-          <View style={styles.scheduleIconPlaceholder}>
-            <MaterialCommunityIcons name="play" size={24} color="#0284C7" />
-          </View>
-          <View style={styles.scheduleContent}>
-            <Text style={styles.scheduleTitle}>User Research Methods</Text>
-            <Text style={styles.scheduleTime}>UX Design Principle</Text>
-          </View>
-          <View style={styles.timePill}>
-            <Text style={styles.timePillText}>10:00 AM</Text>
-          </View>
-        </TouchableOpacity>
+        {scheduleCourses && scheduleCourses.length > 0 ? (
+          scheduleCourses.map((course, index) => {
+            const date = new Date(course.createdAt);
+            const timeString = date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
 
-        <TouchableOpacity style={styles.scheduleCard}>
-          <View style={styles.scheduleIconPlaceholder}>
-            <MaterialCommunityIcons name="play" size={24} color="#0284C7" />
+            return (
+              <TouchableOpacity
+                key={course._id}
+                style={styles.scheduleCard}
+                onPress={() =>
+                  navigation.navigate("CourseDetail", { id: course._id })
+                }
+              >
+                <View style={styles.scheduleIconPlaceholder}>
+                  <MaterialCommunityIcons
+                    name="play"
+                    size={24}
+                    color="#0284C7"
+                  />
+                </View>
+                <View style={styles.scheduleContent}>
+                  <Text style={styles.scheduleTitle}>{course.title}</Text>
+                  <Text style={styles.scheduleTime}>
+                    {course.modules && course.modules.length > 0
+                      ? course.modules[0].title
+                      : course.language}
+                  </Text>
+                </View>
+                <View style={styles.timePill}>
+                  <Text style={styles.timePillText}>{timeString}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <View style={[styles.scheduleCard, { justifyContent: "center" }]}>
+            <Text style={{ color: COLORS.textSecondary }}>
+              No schedule available.
+            </Text>
           </View>
-          <View style={styles.scheduleContent}>
-            <Text style={styles.scheduleTitle}>State Management</Text>
-            <Text style={styles.scheduleTime}>React Fundamentals</Text>
-          </View>
-          <View style={styles.timePill}>
-            <Text style={styles.timePillText}>02:30 AM</Text>
-          </View>
-        </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

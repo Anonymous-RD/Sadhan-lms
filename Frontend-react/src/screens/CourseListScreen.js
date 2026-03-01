@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
+import { useFocusEffect } from "@react-navigation/native";
 
 // These could also come from the API categories eventually
 const CATEGORIES = ["All", "Development", "Design", "Business", "Soft Skill"];
@@ -25,11 +26,13 @@ const CourseListScreen = ({ navigation }) => {
 
   const [progressData, setProgressData] = useState({});
 
-  useEffect(() => {
-    if (userInfo) {
-      fetchCourses();
-    }
-  }, [userInfo]);
+  useFocusEffect(
+    useCallback(() => {
+      if (userInfo) {
+        fetchCourses();
+      }
+    }, [userInfo]),
+  );
 
   const fetchCourses = async () => {
     try {
