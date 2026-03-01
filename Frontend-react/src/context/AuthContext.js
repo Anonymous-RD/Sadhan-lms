@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
       const isEmail = identifier.includes("@");
 
       const payload = {
-        password: loginMethod === "password" ? credential : "password123", // Default for demo OTP path
+        password: loginMethod === "password" ? credential : "123456", // Default for demo OTP path
       };
 
       if (isEmail) {

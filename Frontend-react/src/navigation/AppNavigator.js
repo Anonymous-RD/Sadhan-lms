@@ -15,6 +15,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import CourseDetailScreen from "../screens/CourseDetailScreen";
 import QuizScreen from "../screens/QuizScreen";
 import CertificateScreen from "../screens/CertificateScreen";
+import CertificateListScreen from "../screens/CertificateListScreen";
 import { COLORS } from "../utils/constants";
 
 import { ActivityIndicator, View } from "react-native";
@@ -41,9 +42,9 @@ function MainTabNavigator() {
           backgroundColor: COLORS.white,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 0, // Set to 0 so the top indicator touches the border
         },
       }}
     >
@@ -53,12 +54,34 @@ function MainTabNavigator() {
         options={{
           tabBarLabel: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <Feather
-              name="home"
-              color={color}
-              size={24}
-              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
-            />
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    width: 32,
+                    height: 4,
+                    backgroundColor: COLORS.primary,
+                    borderBottomLeftRadius: 4,
+                    borderBottomRightRadius: 4,
+                  }}
+                />
+              )}
+              <Feather
+                name="home"
+                color={focused ? COLORS.primary : COLORS.textSecondary}
+                size={22}
+                style={{ marginTop: 6 }}
+              />
+            </View>
           ),
         }}
       />
@@ -68,12 +91,34 @@ function MainTabNavigator() {
         options={{
           tabBarLabel: "Courses",
           tabBarIcon: ({ color, focused }) => (
-            <Feather
-              name="book-open"
-              color={color}
-              size={24}
-              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
-            />
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    width: 32,
+                    height: 4,
+                    backgroundColor: COLORS.primary,
+                    borderBottomLeftRadius: 4,
+                    borderBottomRightRadius: 4,
+                  }}
+                />
+              )}
+              <Feather
+                name="book-open"
+                color={focused ? COLORS.primary : COLORS.textSecondary}
+                size={22}
+                style={{ marginTop: 6 }}
+              />
+            </View>
           ),
         }}
       />
@@ -83,12 +128,34 @@ function MainTabNavigator() {
         options={{
           tabBarLabel: "Wishlist",
           tabBarIcon: ({ color, focused }) => (
-            <Feather
-              name="heart"
-              color={color}
-              size={24}
-              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
-            />
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    width: 32,
+                    height: 4,
+                    backgroundColor: COLORS.primary,
+                    borderBottomLeftRadius: 4,
+                    borderBottomRightRadius: 4,
+                  }}
+                />
+              )}
+              <Feather
+                name="heart"
+                color={focused ? COLORS.primary : COLORS.textSecondary}
+                size={22}
+                style={{ marginTop: 6 }}
+              />
+            </View>
           ),
         }}
       />
@@ -98,12 +165,34 @@ function MainTabNavigator() {
         options={{
           tabBarLabel: "Profile",
           tabBarIcon: ({ color, focused }) => (
-            <Feather
-              name="user"
-              color={color}
-              size={24}
-              style={focused ? { opacity: 1 } : { opacity: 0.7 }}
-            />
+            <View
+              style={{
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    width: 32,
+                    height: 4,
+                    backgroundColor: COLORS.primary,
+                    borderBottomLeftRadius: 4,
+                    borderBottomRightRadius: 4,
+                  }}
+                />
+              )}
+              <Feather
+                name="user"
+                color={focused ? COLORS.primary : COLORS.textSecondary}
+                size={22}
+                style={{ marginTop: 6 }}
+              />
+            </View>
           ),
         }}
       />
@@ -158,6 +247,11 @@ const AppNavigator = () => {
               name="Certificate"
               component={CertificateScreen}
               options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CertificateList"
+              component={CertificateListScreen}
+              options={{ title: "My Certificates" }}
             />
           </>
         )}
