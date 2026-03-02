@@ -8,13 +8,13 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { WebView } from "react-native-webview";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import apiService from "../services/apiService";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import AnimatedToast from "../components/AnimatedToast";
+import YoutubePlayer from "react-native-youtube-iframe";
 
 // Robust YouTube ID extractor
 const getYoutubeId = (url) => {
@@ -130,45 +130,20 @@ const CourseDetailScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Video Header */}
       <View style={styles.videoContainer}>
-        {progress ? (
-          <WebView
-            originWhitelist={["*"]}
-            source={{
-              html: `
-                <!DOCTYPE html>
-                <html>
-                  <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                      body { margin: 0; background-color: black; }
-                      .container { position: relative; width: 100%; height: 0; padding-bottom: 56.25%; }
-                      .container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-                    </style>
-                  </head>
-                  <body>
-                    <div class="container">
-                      <iframe 
-                        src="https://www.youtube.com/embed/${getYoutubeId(course.youtubeVideoUrl) || "dQw4w9WgXcQ"}?rel=0&autoplay=${route.params?.autoplay ? 1 : 0}&showinfo=0&controls=1" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                      </iframe>
-                    </div>
-                  </body>
-                </html>
-              `,
+        {course.youtubeVideoUrl ? (
+          <YoutubePlayer
+            height={220}
+            play={route.params?.autoplay || false}
+            videoId={getYoutubeId(course.youtubeVideoUrl) || "dQw4w9WgXcQ"}
+            onChangeState={(state) => {
+              if (state === "ended") {
+                // Potential: mark lesson as completed
+              }
             }}
-            style={styles.video}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            allowsFullscreenVideo={true}
-            mediaPlaybackRequiresUserAction={false}
-            userAgent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
           />
         ) : (
           <View style={styles.videoPlaceholder}>
-            <Feather name="lock" size={40} color={COLORS.white} />
-            <Text style={styles.lockText}>Enroll to watch this course</Text>
+            <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         )}
       </View>
