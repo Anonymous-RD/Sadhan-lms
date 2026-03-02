@@ -13,6 +13,15 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import apiService from "../services/apiService";
 import { COLORS } from "../utils/constants";
 import AnimatedToast from "../components/AnimatedToast";
+import { Image } from "react-native";
+
+// Helper to get YouTube ID
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
 
 const WishlistScreen = ({ navigation }) => {
   const [wishlistCourses, setWishlistCourses] = useState([]);
@@ -53,7 +62,9 @@ const WishlistScreen = ({ navigation }) => {
 
     // Optimistic UI update
     const previous = wishlistCourses;
-    setWishlistCourses((prev) => prev.filter((course) => course._id !== courseId));
+    setWishlistCourses((prev) =>
+      prev.filter((course) => course._id !== courseId),
+    );
 
     try {
       await apiService.delete(`/wishlist/${courseId}`);
@@ -71,8 +82,17 @@ const WishlistScreen = ({ navigation }) => {
       style={styles.card}
       onPress={() => navigation.navigate("CourseDetail", { id: item._id })}
     >
-      <View style={styles.tag}>
-        <Text style={styles.tagText}>{item.category || "Development"}</Text>
+      <View style={styles.imagePlaceholder}>
+        <Image
+          source={{
+            uri: `https://img.youtube.com/vi/${getYoutubeId(item.youtubeVideoUrl)}/mqdefault.jpg`,
+          }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+        <View style={[styles.tag, { position: "absolute", top: 10, left: 10 }]}>
+          <Text style={styles.tagText}>{item.category || "Development"}</Text>
+        </View>
       </View>
 
       <View style={styles.headerRow}>
@@ -86,7 +106,11 @@ const WishlistScreen = ({ navigation }) => {
           }}
           disabled={removingIds[item._id]}
         >
-          <MaterialCommunityIcons name="heart" size={20} color={COLORS.secondary} />
+          <MaterialCommunityIcons
+            name="heart"
+            size={20}
+            color={COLORS.secondary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -169,13 +193,22 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
   },
+  imagePlaceholder: {
+    height: 140,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  thumbnail: {
+    width: "100%",
+    height: "100%",
+  },
   tag: {
-    alignSelf: "flex-start",
     backgroundColor: "#DBEAFE",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginBottom: 10,
   },
   tagText: {
     color: "#1E40AF",

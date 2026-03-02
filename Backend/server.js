@@ -28,7 +28,8 @@ app.use("/certificate", require("./src/routes/certificateRoutes"));
 app.use("/wishlist", require("./src/routes/wishlistRoutes"));
 
 const PORT = process.env.PORT || 5000;
+const HOST = "0.0.0.0"; // Listen on all network interfaces
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server running at http://${HOST}:${PORT}`);
 });

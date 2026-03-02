@@ -16,6 +16,15 @@ import apiService from "../services/apiService";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import AnimatedToast from "../components/AnimatedToast";
+import { Image } from "react-native";
+
+// Helper to get YouTube ID
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
 
 // These could also come from the API categories eventually
 const CATEGORIES = ["All", "Development", "Design", "Business", "Soft Skill"];
@@ -59,7 +68,9 @@ const CourseListScreen = ({ navigation }) => {
       const fetchedCourses = coursesRes.data || [];
       setCourses(fetchedCourses);
       setWishlistCourseIds(
-        new Set((wishlistRes.data || []).map((course) => course._id || course.id)),
+        new Set(
+          (wishlistRes.data || []).map((course) => course._id || course.id),
+        ),
       );
 
       // Fetch progress for each course
@@ -239,7 +250,19 @@ const CourseListScreen = ({ navigation }) => {
               }
             >
               <View style={styles.courseImagePlaceholder}>
-                <View style={styles.tag}>
+                <Image
+                  source={{
+                    uri: `https://img.youtube.com/vi/${getYoutubeId(course.youtubeVideoUrl)}/mqdefault.jpg`,
+                  }}
+                  style={styles.courseThumbnail}
+                  resizeMode="cover"
+                />
+                <View
+                  style={[
+                    styles.tag,
+                    { position: "absolute", top: 10, left: 10 },
+                  ]}
+                >
                   <Text style={styles.tagText}>
                     {course.category || "Development"}
                   </Text>
@@ -252,10 +275,7 @@ const CourseListScreen = ({ navigation }) => {
                   onPress={(event) => {
                     event.stopPropagation();
                     const courseId = course._id || course.id;
-                    toggleWishlist(
-                      courseId,
-                      wishlistCourseIds.has(courseId),
-                    );
+                    toggleWishlist(courseId, wishlistCourseIds.has(courseId));
                   }}
                   disabled={wishlistActionLoading[course._id || course.id]}
                 >
@@ -469,12 +489,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   courseImagePlaceholder: {
-    height: 140,
-    backgroundColor: "#F8FAFC", // Lighter slate for image placeholder
+    height: 160,
+    backgroundColor: "#F1F5F9",
     borderRadius: 12,
     marginBottom: 15,
-    padding: 12,
-    alignItems: "flex-start",
+    overflow: "hidden", // Crucial for image border radius
+  },
+  courseThumbnail: {
+    width: "100%",
+    height: "100%",
   },
   tag: {
     backgroundColor: "#DBEAFE",

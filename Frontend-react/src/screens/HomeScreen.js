@@ -15,6 +15,15 @@ import apiService from "../services/apiService";
 import { useFocusEffect } from "@react-navigation/native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import AnimatedToast from "../components/AnimatedToast";
+import { Image } from "react-native";
+
+// Helper to get YouTube ID
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
 
 const HomeScreen = ({ navigation }) => {
   const { userInfo, logout } = useContext(AuthContext);
@@ -206,7 +215,19 @@ const HomeScreen = ({ navigation }) => {
             }
           >
             <View style={styles.courseImagePlaceholder}>
-              <View style={styles.coursePill}>
+              <Image
+                source={{
+                  uri: `https://img.youtube.com/vi/${getYoutubeId(recentCourse.youtubeVideoUrl)}/mqdefault.jpg`,
+                }}
+                style={styles.courseThumbnail}
+                resizeMode="cover"
+              />
+              <View
+                style={[
+                  styles.coursePill,
+                  { position: "absolute", top: 10, left: 10 },
+                ]}
+              >
                 <Text style={styles.coursePillText}>Development</Text>
               </View>
             </View>
@@ -452,12 +473,15 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   courseImagePlaceholder: {
-    height: 140,
+    height: 160,
     backgroundColor: "#F1F5F9",
     borderRadius: 12,
     marginBottom: 15,
-    padding: 12,
-    alignItems: "flex-start",
+    overflow: "hidden", // Crucial for image border radius
+  },
+  courseThumbnail: {
+    width: "100%",
+    height: "100%",
   },
   coursePill: {
     backgroundColor: "#BFDBFE",

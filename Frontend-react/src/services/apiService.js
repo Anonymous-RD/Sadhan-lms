@@ -1,9 +1,31 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
-const API_URL = "http://10.13.109.159:5000";
+// Dynamically determine the API URL based on the host's IP address
+const getApiUrl = () => {
+  // Try different manifest paths for different Expo versions
+  const debuggerHost =
+    Constants.expoConfig?.hostUri ||
+    Constants.manifest2?.extra?.expoGo?.debuggerHost ||
+    Constants.manifest?.debuggerHost;
 
-// const API_URL = "http://192.168.29.162:5000";
+  console.log("Expo Debugger Host:", debuggerHost);
+
+  const localhost = debuggerHost?.split(":")[0];
+  console.log("Parsed Localhost IP:", localhost);
+
+  // If we have a localhost IP, use it. Otherwise fall back to a reasonable default.
+  // Use 10.0.2.2 for Android emulators connecting to host machine if all else fails
+  const ip = localhost || "10.0.2.2";
+
+  const finalUrl = `http://${ip}:5000`;
+  console.log("Final determined API_URL:", finalUrl);
+
+  return finalUrl;
+};
+
+const API_URL = getApiUrl();
 
 const apiService = axios.create({
   baseURL: API_URL,

@@ -16,6 +16,14 @@ import apiService from "../services/apiService";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import AnimatedToast from "../components/AnimatedToast";
 
+// Robust YouTube ID extractor
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
+
 const CourseDetailScreen = ({ route, navigation }) => {
   const { id } = route.params;
   const { userInfo } = useContext(AuthContext);
@@ -124,35 +132,38 @@ const CourseDetailScreen = ({ route, navigation }) => {
       <View style={styles.videoContainer}>
         {progress ? (
           <WebView
+            originWhitelist={["*"]}
             source={{
-              uri: (() => {
-                let url =
-                  course.youtubeVideoUrl ||
-                  "https://www.youtube.com/embed/dQw4w9WgXcQ";
-
-                if (url.includes("watch?v=")) {
-                  url = `https://www.youtube.com/embed/${url.split("v=")[1]}`;
-                }
-
-                // Add origin for YouTube embed identity
-                const origin = "https://www.youtube.com";
-                url += url.includes("?")
-                  ? `&origin=${origin}`
-                  : `?origin=${origin}`;
-
-                if (route.params?.autoplay) {
-                  url += "&autoplay=1";
-                }
-                return url;
-              })(),
-              headers: {
-                Referer: "https://www.youtube.com",
-              },
+              html: `
+                <!DOCTYPE html>
+                <html>
+                  <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                      body { margin: 0; background-color: black; }
+                      .container { position: relative; width: 100%; height: 0; padding-bottom: 56.25%; }
+                      .container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <iframe 
+                        src="https://www.youtube.com/embed/${getYoutubeId(course.youtubeVideoUrl) || "dQw4w9WgXcQ"}?rel=0&autoplay=${route.params?.autoplay ? 1 : 0}&showinfo=0&controls=1" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                      </iframe>
+                    </div>
+                  </body>
+                </html>
+              `,
             }}
             style={styles.video}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             allowsFullscreenVideo={true}
+            mediaPlaybackRequiresUserAction={false}
+            userAgent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
           />
         ) : (
           <View style={styles.videoPlaceholder}>
@@ -347,7 +358,9 @@ const CourseDetailScreen = ({ route, navigation }) => {
               <Text style={styles.description}>{course.description}</Text>
               {course.outcomes && course.outcomes.length > 0 && (
                 <View style={styles.learningOutcomes}>
-                  <Text style={styles.outcomesTitle}>{"What you'll learn"}</Text>
+                  <Text style={styles.outcomesTitle}>
+                    {"What you'll learn"}
+                  </Text>
                   {course.outcomes.map((outcome, idx) => (
                     <Text key={idx} style={styles.outcomeItem}>
                       • {outcome}
