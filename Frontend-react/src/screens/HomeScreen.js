@@ -155,20 +155,45 @@ const HomeScreen = ({ navigation }) => {
         {/* Stats Section */}
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: "#E3F2FD" }]}>
-            <Text style={styles.statLabel}>Courses Enrolled</Text>
+            <Text
+              style={styles.statLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              Courses Enrolled
+            </Text>
             <View style={styles.statBottom}>
-              <Text style={styles.statValue}>{stats.enrolled}</Text>
+              <Text
+                style={styles.statValue}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {stats.enrolled}
+              </Text>
               <View
-                style={[styles.iconPlaceholder, { backgroundColor: "#E3F2FD" }]}
+                style={[styles.iconPlaceholder, { backgroundColor: "#CBE5FF" }]}
               >
                 <Feather name="book-open" size={16} color="#0284C7" />
               </View>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: "#E8F5E9" }]}>
-            <Text style={styles.statLabel}>Hours Learned</Text>
+            <Text
+              style={styles.statLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              Hours Learned
+            </Text>
             <View style={styles.statBottom}>
-              <Text style={styles.statValue}>{Math.round(stats.hours)} Hr</Text>
+              <Text
+                style={styles.statValue}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {Math.round(stats.hours)}{" "}
+                <Text style={styles.unitText}>hrs</Text>
+              </Text>
               <View
                 style={[styles.iconPlaceholder, { backgroundColor: "#C8E6C9" }]}
               >
@@ -177,9 +202,21 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: "#F3E8FF" }]}>
-            <Text style={styles.statLabel}>Certification</Text>
+            <Text
+              style={styles.statLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              Certification
+            </Text>
             <View style={styles.statBottom}>
-              <Text style={styles.statValue}>{stats.certificates}</Text>
+              <Text
+                style={styles.statValue}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {stats.certificates}
+              </Text>
               <View
                 style={[styles.iconPlaceholder, { backgroundColor: "#E9D5FF" }]}
               >
@@ -412,30 +449,38 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: "row",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     marginBottom: 30,
     justifyContent: "space-between",
   },
   statCard: {
     flex: 1,
+    flexBasis: 0,
+    minHeight: 85,
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 4,
+    justifyContent: "space-between",
   },
   statLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   statBottom: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   statValue: {
     fontSize: 24,
-    fontWeight: "400",
+    fontWeight: "500",
     color: "#000",
+  },
+  unitText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: "400",
   },
   iconPlaceholder: {
     width: 28,
